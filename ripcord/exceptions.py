@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ['HTTPError', 'BadRequest', 'Unauthorized', 'Forbidden', \
-    'NotFound', 'ServerError']
-
 class HTTPError(Exception):
     def __init__(self, code=000, message=''):
         super(HTTPError, self).__init__()
