@@ -1,2 +1,9 @@
 ripcord-env
 sandbox.py
+tmp
+*.pyc
+.DS_Store
+.egg/*
+.egg-info
+.egg-info/
+.egg

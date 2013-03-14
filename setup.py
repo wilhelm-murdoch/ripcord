@@ -7,7 +7,7 @@ from version import __version__
 setup(
     name='ripcord',
     version=__version__,
-    description='A package for quickly creating RESTful API clients in Python.',
+    description='A package for quickly creating RESTful API clients.',
     author='Wilhelm Murdoch',
     author_email='wilhelm.murdoch@gmail.com',
     url='http://www.thedrunkenepic.com/',

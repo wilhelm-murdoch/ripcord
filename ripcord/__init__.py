@@ -1,19 +1,18 @@
 # -*- coding: utf-8 -*-
 
 import requests
-from bunch import *
-from utils import normalize_url
+from exceptions import *
+from utils import normalize_url, munchify
 
-# create own bunchify with helper methods similar to those in jetpack. Also,
-# gracefully check for key errors and return None or automatically define them.
-
-class Ripcord(object):
+class Client(object):
     def __init__(self, **kwargs):
         self._baseurl = kwargs.get('baseurl', '')
         self._namespace = kwargs.get('namespace', '')
-        self._extra_query = kwargs.get('extra_query', {})
-        self._extra_body = kwargs.get('extra_body', {})
-        self._path_to_parse = kwargs.get('path_to_parse', [])
+        self._endpoint = kwargs.get('endpoint', '')
+        self._extra_params = kwargs.get('extra_params', {})
+        self._extra_data = kwargs.get('extra_data', {})
+        self._path_to_parse_response = kwargs.get('path_to_parse_response', [])
+        self._path_to_parse_error = kwargs.get('path_to_parse_error', [])
         self._keep_trailing_slash = kwargs.get('keep_trailing_slash', False)
 
     @property
@@ -33,50 +32,147 @@ class Ripcord(object):
         self._namespace = value
 
     @property
+    def endpoint(self):
+        return self._endpoint
+
+    @endpoint.setter
+    def endpoint(self, value):
+        self._endpoint = value
+
+    @property
     def keep_trailing_slash(self):
         return self._keep_trailing_slash
 
     @keep_trailing_slash.setter
     def keep_trailing_slash(self, value):
-        assert isinstance(value, bool), 'wtf, seriously guys.'
+        if not isinstance(value, bool):
+            raise ValueError, 'argument `value` must be of type `bool`'
         self._keep_trailing_slash = value
 
     @property
-    def extra_body(self):
-        return self._extra_body
+    def extra_params(self):
+        return self._extra_params
+
+    def add_extra_data(self, key, value=None):
+        if isinstance(key, dict):
+            self._extra_data = key
+        else:
+            if not isinstance(key, str):
+                raise ValueError, 'argument `key` must be of type `str`'
+            self._extra_data[key] = value
 
     @property
-    def extra_query(self):
-        return self._extra_query
+    def extra_data(self):
+        return self._extra_data
 
-    def add_extra_body(self, key, value=None):
+    def add_extra_params(self, key, value=None):
         if isinstance(key, dict):
-            self._extra_body = key
+            self._extra_params = key
         else:
-            assert isinstance(key, str), 'wtf, dude?'
-            self._extra_body[key] = value
+            if not isinstance(key, str):
+                raise ValueError, 'argument `key` must be of type `str`'
+            self._extra_params[key] = value
 
-    def add_extra_query(self, key, value=None):
-        if isinstance(key, dict):
-            self._extra_query = key
+    @property
+    def path_to_parse_response(self):
+        return self._path_to_parse_response
+
+    def add_path_to_parse_response(self, key):
+        if isinstance(key, list):
+            self._path_to_parse_response = key
         else:
-            assert isinstance(key, str), 'wtf, dude?'
-            self._extra_query[key] = value
+            if not isinstance(key, str):
+                raise ValueError, 'argument `key` must be of type `str`'
+            self._path_to_parse_response.append(key)
+
+    @property
+    def path_to_parse_error(self):
+        return self._path_to_parse_error
+
+    def add_path_to_parse_error(self, key):
+        if isinstance(key, list):
+            self._path_to_parse_error = key
+        else:
+            if not isinstance(key, str):
+                raise ValueError, 'argument `key` must be of type `str`'
+            self._path_to_parse_error.append(key)
 
     def construct_url(self, url):
-        return normalize_url("{}/{}/{}".format(self._baseurl, self._namespace, \
-            url))
+        components = []
+        if self.baseurl:
+            components.append(self.baseurl)
+
+        if self.namespace:
+            components.append(self.namespace)
+
+        if self.endpoint:
+            components.append(self.endpoint)
+
+        components.append(url)
+
+        normalized_url = normalize_url('/'.join(components))
+
+        if not self.keep_trailing_slash:
+            return normalized_url.rstrip('/')
+
+        return normalized_url
 
     def check_error_response(self, response):
-        return response
+        if response.status_code in [200, 201]:
+            return response
+
+        if response.status_code == 400:
+            raise BadRequest
+        elif response.status_code == 401:
+            raise Unauthorized
+        elif response.status_code == 403:
+            raise Forbidden
+        elif response.status_code == 404:
+            raise NotFound
+        elif response.status_code == 500:
+            raise ServerError
+        else:
+            message = response.json()
+            if self.path_to_parse_error:
+                message = munchify(self._find_path_to_parse(response.json(), \
+                    self.path_to_parse_error))
+            raise HTTPError(response.status_code, message)
 
     def send(self, method, url, **kwargs):
-        params = self.extra_query
-        request = requests.Request(method=method, url=self.construct_url(url), params=params, **kwargs)
+        if self.extra_params:
+            kwargs.update(params=dict(kwargs.get('params', {}).items() + \
+                self.extra_params.items()))
+
+        if self.extra_data:
+            kwargs.update(data=dict(kwargs.get('data', {}).items() + \
+                self.extra_data.items()))
+
+        path_to_parse_response = kwargs.get('path_to_parse_response', None) \
+            or self.path_to_parse_response
+        kwargs.pop('path_to_parse_response', None)
+
+        request = requests.Request(method=method, \
+            url=self.construct_url(url), **kwargs)
         session = requests.Session()
         response = session.send(request.prepare())
 
-        return bunchify(response.json())
+        response = self.check_error_response(response)
+
+        json = response.json()
+        if path_to_parse_response:
+            json = self._find_path_to_parse(json, path_to_parse_response)
+
+        return munchify(json)
+
+    def _find_path_to_parse(self, json, path_to_parse):
+        if not isinstance(json, dict):
+            raise ValueError, 'argument `json` must be of type `dict`'
+
+        matched_node = json
+        for node in path_to_parse:
+            if node in matched_node:
+                matched_node = matched_node[node]
+        return matched_node
 
     def get(self, url, **kwargs):
         return self.send('GET', url, **kwargs)
