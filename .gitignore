@@ -7,3 +7,4 @@ tmp
 .egg-info
 .egg-info/
 .egg
+ripcord.egg-info/
