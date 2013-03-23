@@ -2,10 +2,9 @@
 
 from . import *
 from ripcord import Client
+from ripcord import munch
 from ripcord.exceptions import *
 from mock import Mock
-
-mock_response = Mock(status_code=200)
 
 class ClientTest(RipcordTest):
     def test_baseurl(self):
@@ -120,7 +119,9 @@ class ClientTest(RipcordTest):
         }
 
         for code, response in code_to_response_map.items():
+            mock_response = Mock(status_code=200)
             mock_response.status_code = code
+
             try:
                 response = self.fixtures.check_error_response(mock_response)
                 self.assertEquals(mock_response.status_code, \
@@ -128,3 +129,26 @@ class ClientTest(RipcordTest):
             except Exception, e:
                 self.assertEquals(e.code, code)
                 self.assertTrue(isinstance(e, response))
+
+    def test_send(self):
+        methods = ['GET', 'POST', 'PUT', 'DELETE']
+
+        for method in methods:
+            response = self.fixtures.send(method, method.lower())
+
+            self.assertEquals(len(response.args.keys()), 5)
+            self.assertTrue(isinstance(response, munch.Munch))
+
+    def test_http_methods(self):
+        methods = ['GET', 'POST', 'PUT', 'DELETE']
+
+        for method in methods:
+            response = getattr(self.fixtures, method.lower())(method.lower())
+
+            self.assertEquals(len(response.args.keys()), 5)
+            self.assertEquals(response.args['token'], 'a-random-token')
+            self.assertEquals(response.args['foo'], 'oof')
+            self.assertEquals(response.args['bar'], 'rab')
+            self.assertEquals(response.args['merp'], 'prem')
+            self.assertEquals(response.args['flakes'], 'sekalf')
+            self.assertTrue(isinstance(response, munch.Munch))
