@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import requests
+import urls
 from exceptions import *
-from utils import normalize_url, munchify
+from munch import *
 
 class Client(object):
     def __init__(self, **kwargs):
@@ -53,18 +54,6 @@ class Client(object):
     def extra_params(self):
         return self._extra_params
 
-    def add_extra_data(self, key, value=None):
-        if isinstance(key, dict):
-            self._extra_data = key
-        else:
-            if not isinstance(key, str):
-                raise ValueError, 'argument `key` must be of type `str`'
-            self._extra_data[key] = value
-
-    @property
-    def extra_data(self):
-        return self._extra_data
-
     def add_extra_params(self, key, value=None):
         if isinstance(key, dict):
             self._extra_params = key
@@ -72,6 +61,18 @@ class Client(object):
             if not isinstance(key, str):
                 raise ValueError, 'argument `key` must be of type `str`'
             self._extra_params[key] = value
+
+    @property
+    def extra_data(self):
+        return self._extra_data
+
+    def add_extra_data(self, key, value=None):
+        if isinstance(key, dict):
+            self._extra_data = key
+        else:
+            if not isinstance(key, str):
+                raise ValueError, 'argument `key` must be of type `str`'
+            self._extra_data[key] = value
 
     @property
     def path_to_parse_response(self):
@@ -110,7 +111,7 @@ class Client(object):
 
         components.append(url)
 
-        normalized_url = normalize_url('/'.join(components))
+        normalized_url = urls.normalize('/'.join(components))
 
         if not self.keep_trailing_slash:
             return normalized_url.rstrip('/')
@@ -132,11 +133,7 @@ class Client(object):
         elif response.status_code == 500:
             raise ServerError
         else:
-            message = response.json()
-            if self.path_to_parse_error:
-                message = munchify(self._find_path_to_parse(response.json(), \
-                    self.path_to_parse_error))
-            raise HTTPError(response.status_code, message)
+            raise HTTPError(response.status_code)
 
     def send(self, method, url, **kwargs):
         if self.extra_params:
