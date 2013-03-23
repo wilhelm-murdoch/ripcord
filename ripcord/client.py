@@ -172,19 +172,115 @@ class Client(object):
         return matched_node
 
     def get(self, url, **kwargs):
+        """ A wrapper method for `requests.get`. Takes the same parameters
+            as the `requests` package.
+
+            :Parameters
+              - `url` (str) - URL target for the GET request
+              - `**kwargs` (dict) - Optional keyword arguments as outlined in
+                `requests.Request` documentation.
+
+            :Returns
+              ripcord.munch.Munch
+
+            :Example
+            >>> client = MyRipcordClient()
+            >>> client.get('http://test.com/merp', param={'foo': 'bar'})
+            <ripcord.munch.Munch>
+        """
         return self.send('GET', url, **kwargs)
 
     def post(self, url, **kwargs):
+        """ A wrapper method for `requests.posts`. Takes the same parameters
+            as the `requests` package.
+
+            :Parameters
+              - `url` (str) - URL target for the POST request
+              - `**kwargs` (dict) - Optional keyword arguments as outlined in
+                `requests.Request` documentation.
+
+            :Returns
+              ripcord.munch.Munch
+
+            :Example
+            >>> client = MyRipcordClient()
+            >>> client.post('http://test.com/merp', data={'foo': 'bar'})
+            <ripcord.munch.Munch>
+        """
         return self.send('POST', url, **kwargs)
 
     def put(self, url, **kwargs):
+        """ A wrapper method for `requests.put`. Takes the same parameters
+            as the `requests` package.
+
+            :Parameters
+              - `url` (str) - URL target for the PUT request
+              - `**kwargs` (dict) - Optional keyword arguments as outlined in
+                `requests.Request` documentation.
+
+            :Returns
+              ripcord.munch.Munch
+
+            :Example
+            >>> client = MyRipcordClient()
+            >>> client.put('http://test.com/merp', data={'foo': 'bar'})
+            <ripcord.munch.Munch>
+        """
         return self.send('PUT', url, **kwargs)
 
     def delete(self, url, **kwargs):
+        """ A wrapper method for `requests.delete`. Takes the same parameters
+            as the `requests` package.
+
+            :Parameters
+              - `url` (str) - URL target for the DELETE request
+              - `**kwargs` (dict) - Optional keyword arguments as outlined in
+                `requests.Request` documentation.
+
+            :Returns
+              ripcord.munch.Munch
+
+            :Example
+            >>> client = MyRipcordClient()
+            >>> client.delete('http://test.com/merp', params={'foo': 'bar'})
+            <ripcord.munch.Munch>
+        """
         return self.send('DELETE', url, **kwargs)
 
     def head(self, url, **kwargs):
+        """ A wrapper method for `requests.head`. Takes the same parameters
+            as the `requests` package.
+
+            :Parameters
+              - `url` (str) - URL target for the HEAD request
+              - `**kwargs` (dict) - Optional keyword arguments as outlined in
+                `requests.Request` documentation.
+
+            :Returns
+              ripcord.munch.Munch
+
+            :Example
+            >>> client = MyRipcordClient()
+            >>> client.head('http://test.com/merp')
+            <ripcord.munch.Munch>
+        """
         return self.send('HEAD', url, **kwargs)
 
     def patch(self, url, **kwargs):
+        """ A wrapper method for `requests.patch`. Takes the same parameters
+            as the `requests` package.
+
+            :Parameters
+              - `url` (str) - URL target for the PATCH request
+              - `**kwargs` (dict) - Optional keyword arguments as outlined in
+                `requests.Request` documentation.
+
+            :Returns
+              ripcord.munch.Munch
+
+            :Example
+            >>> client = MyRipcordClient()
+            >>> client.patch('http://test.com/merp', data={'foo': 'bar'})
+            <ripcord.munch.Munch>
+        """
         return self.send('PATCH', url, **kwargs)

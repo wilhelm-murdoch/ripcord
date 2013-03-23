@@ -12,6 +12,8 @@ class Munch(bunch.Bunch):
     def last(self):
         return self.get(self.keys().pop(), None)
 
+    def __repr__(self):
+        return '<ripcord.munch.Munch>'
 
 def munchify(x):
     if isinstance(x, dict):
