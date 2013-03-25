@@ -50,3 +50,9 @@ class ExceptionTest(RipcordTest):
         except Exception, e:
             self.assertEquals(e.code, 405)
             self.assertTrue(isinstance(e, HTTPError))
+
+    def test_raises_invalid_json_error(self):
+        try:
+            self.fixtures.get('html')
+        except Exception, e:
+            self.assertTrue(isinstance(e, InvalidJSONResponse))

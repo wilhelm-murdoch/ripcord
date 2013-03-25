@@ -3,6 +3,7 @@
 from requests.status_codes import _codes
 from string import capwords
 
+class InvalidJSONResponse(Exception): pass
 
 class HTTPError(Exception):
     def __init__(self, code):
