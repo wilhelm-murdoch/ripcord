@@ -1,3 +1,4 @@
+[![Build Status](https://drone.io/github.com/wilhelm-murdoch/ripcord/status.png)](https://drone.io/github.com/wilhelm-murdoch/ripcord/latest)
 # Ripcord
 
 ## Examples
